@@ -303,7 +303,7 @@ class Float extends BaseType {
         if (this.maxValue !== undefined) {
             limits += `, max=${this.maxValue}`;
         }
-        return `CFloat(${this.getPythonDefaultValue()}, ${nullableStr}${limits})${this.getTagString()}`;
+        return `IEEEFloat(${this.getPythonDefaultValue()}, ${nullableStr}${limits})${this.getTagString()}`;
     }
     getPropertyConverterFn() {
         return 'convertFloat';
@@ -448,7 +448,7 @@ class UniformDict extends DictType {
         const nullableStr = this.getNullableStr();
         return `Dict(default_value=${
             this.getPythonDefaultValue()
-        }, trait=Uniform(allow_none=True), ${
+        }, value_trait=Uniform(allow_none=True), ${
             nullableStr
         })${this.getTagString()}`;
     }

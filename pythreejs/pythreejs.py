@@ -9,8 +9,6 @@ This is meant to be a low-level wrapper around three.js. We hope that others
 will use this foundation to build higher-level interfaces to build 3d plots.
 """
 
-from __future__ import absolute_import
-
 from ipywidgets import Widget, widget_serialization
 from traitlets import Unicode, CInt, Instance, List, CFloat, Bool, observe, validate
 import numpy as np
@@ -44,7 +42,7 @@ def grid_indices_gen(nx, ny):
     """
     for x in range(nx - 1):
         for y in range(ny - 1):
-            root = x + y * ny
+            root = x + y * nx
             yield (root, root + 1, root + nx)
             yield (root + nx, root + 1, root + nx + 1)
 
@@ -78,7 +76,7 @@ class SurfaceGeometry(BufferGeometry):
         x = np.linspace(-self.width/2, self.width/2, nx)
         y = np.linspace(-self.height/2, self.height/2, ny)
         xx, yy = np.meshgrid(x, y)
-        z = np.array(self.z).reshape((nx, ny))
+        z = np.array(self.z).reshape(xx.shape)
 
         positions = np.dstack((xx, yy, z)).reshape(nx * ny, 3).astype(np.float32)
 

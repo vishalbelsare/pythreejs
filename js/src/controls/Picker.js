@@ -3,39 +3,41 @@ var THREE = require('three');
 var PickerAutogen = require('./Picker.autogen');
 
 
-var PickerModel = PickerAutogen.PickerModel.extend({
+class PickerModel extends PickerAutogen.PickerModel {
 
-    syncToThreeObj: function(force) {
-    },
+    syncToThreeObj(force) {
+    }
 
-    syncToModel: function() {
-    },
+    syncToModel() {
+    }
 
-    constructThreeObject: function() {
+    constructThreeObject() {
         this.camera = null;
         var event = this.get('event');
         var obj = new PickerControls(event);
         return obj;
-    },
+    }
 
-    setupListeners: function() {
+    setupListeners() {
         PickerAutogen.PickerModel.prototype.setupListeners.call(this);
         this.obj.addEventListener('pick', this.onPick.bind(this));
         this.on('enableControl', this.onEnable, this);
         this.on('disableControl', this.onDisable, this);
-    },
+    }
 
-    onEnable: function(view) {
+    onEnable(view) {
         this.camera = view.camera;
-    },
+    }
 
-    onDisable: function(view) {
+    onDisable(view) {
         this.camera = null;
-    },
+    }
 
-    onPick: function() {
+    onPick() {
         var mouse = this.obj.pickCoordinates;
-        var objects = pick(mouse, this.camera, this.get('controlling').obj);
+        var objects = pick(mouse, this.camera, this.get('controlling').obj,
+            this.get('lineThreshold'), this.get('pointThreshold')
+        );
 
         var info = getinfo(objects.length > 0 ? objects[0] : null);
 
@@ -47,12 +49,11 @@ var PickerModel = PickerAutogen.PickerModel.extend({
         info.modifiers = this.obj.modifiers;
         this.set(info, 'pushFromThree');
         this.save_changes();
-    },
-});
+    }
+}
 
 var PickerControls = function(event) {
 
-    var changeEvent = { type: 'change' };
     var pickEvent = { type: 'pick' };
 
     var scope = this;
@@ -70,7 +71,7 @@ var PickerControls = function(event) {
         scope.element.removeEventListener(event, onEvent, false);
     };
 
-    function onEvent( event ) {
+    function onEvent(event) {
         var el = scope.element;
         var r = el.getBoundingClientRect();
         var offsetX = r.x + window.pageXOffset;
@@ -95,15 +96,18 @@ var PickerControls = function(event) {
 
         scope.dispatchEvent( pickEvent );
     }
-
 };
 
 PickerControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 PickerControls.prototype.constructor = PickerControls;
 
 
-function pick(mouse, camera, root) {
+function pick(mouse, camera, root, lineThreshold, pointThreshold) {
     var raycaster = new THREE.Raycaster();
+    raycaster.params = {
+        'Points': { 'threshold': pointThreshold },
+        'Line': { 'threshold': lineThreshold }
+    };
     raycaster.setFromCamera( mouse, camera );
     return raycaster.intersectObject(root, true);
 }
@@ -116,13 +120,13 @@ function getinfo(o) {
         if (o.face && o.object.geometry.isBufferGeometry) {
             v = o.object.geometry.attributes.position.array;
             verts = [[v[o.face.a], v[o.face.a] + 1, v[o.face.a] + 2],
-                     [v[o.face.b], v[o.face.b] + 1, v[o.face.b] + 2],
-                     [v[o.face.c], v[o.face.c] + 1, v[o.face.c] + 2]];
+                [v[o.face.b], v[o.face.b] + 1, v[o.face.b] + 2],
+                [v[o.face.c], v[o.face.c] + 1, v[o.face.c] + 2]];
         } else if (o.face) {
             v = o.object.geometry.vertices;
             verts = [[v[o.face.a].x, v[o.face.a].y, v[o.face.a].z],
-                     [v[o.face.b].x, v[o.face.b].y, v[o.face.b].z],
-                     [v[o.face.c].x, v[o.face.c].y, v[o.face.c].z]];
+                [v[o.face.b].x, v[o.face.b].y, v[o.face.b].z],
+                [v[o.face.c].x, v[o.face.c].y, v[o.face.c].z]];
         }
         return {
             point: [o.point.x, o.point.y, o.point.z],
@@ -134,6 +138,8 @@ function getinfo(o) {
             faceIndex: o.faceIndex !== undefined && o.faceIndex !== null ? o.faceIndex : null,
             object: o.object.ipymodel,
             uv: o.uv ? [o.uv.x, o.uv.y] : [0, 0],
+            instanceId: o.instanceId !== undefined ? o.instanceId : null,
+            index: o.index !== undefined ? o.index : null,
         };
     }
     return {
@@ -146,6 +152,8 @@ function getinfo(o) {
         faceIndex: null,
         object: null,
         uv: [0, 0],
+        instanceId: null,
+        index: null,
     };
 }
 

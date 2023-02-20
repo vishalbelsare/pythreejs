@@ -62,10 +62,12 @@ setup_args = {
     'long_description_content_type': 'text/markdown',
     'license': 'BSD-3-Clause',
     'include_package_data': True,
+    'python_requires': '>=3.7',
     'install_requires': [
         'ipywidgets>=7.2.1',
         'ipydatawidgets>=1.1.1',
         'numpy',
+        'traitlets',
     ],
     'extras_require': {
         'test': [
